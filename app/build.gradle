@@ -1,0 +1,74 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+// Read local.properties once for SDK key, signing, etc.
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.newInputStream())
+}
+
+android {
+    namespace = "com.hubble.quickstart.gateway"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.hubble.quickstart.gateway"
+        minSdk = 21
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+        multiDexEnabled = true
+
+        buildConfigField "String", "HUBBLE_SDK_KEY",
+                "\"${localProps.getProperty("hubbleSdkKey", "")}\""
+    }
+
+    signingConfigs {
+        release {
+            // CI: decode base64 keystore from env var to a temp file
+            // Local: read keystore path from local.properties
+            def keystoreBase64 = System.getenv("KEYSTORE_BASE64")
+            if (keystoreBase64 != null) {
+                def keystoreFile = file("${buildDir}/keystore.jks")
+                keystoreFile.parentFile.mkdirs()
+                keystoreFile.bytes = Base64.decoder.decode(keystoreBase64)
+                storeFile = keystoreFile
+            } else {
+                storeFile = file(localProps.getProperty("releaseKeystoreFile", "hubble-quickstart.jks"))
+            }
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("releaseKeystorePassword", "")
+            keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("releaseKeyAlias", "")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: localProps.getProperty("releaseKeyPassword", "")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.release
+            minifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation(libs.hubble.gateway.sdk)
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.constraintlayout)
+}

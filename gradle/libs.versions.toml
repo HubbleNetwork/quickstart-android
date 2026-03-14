@@ -1,0 +1,14 @@
+[versions]
+agp = "8.13.0"
+appcompat = "1.7.0"
+material = "1.12.0"
+constraintlayout = "2.2.0"
+
+[libraries]
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+hubble-gateway-sdk = { module = "com.hubble.sdk:gateway-sdk", version = "0.2.2" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

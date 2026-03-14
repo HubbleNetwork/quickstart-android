@@ -1,0 +1,33 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "hubble-quickstart"
+include ':app'
+
+// When useLocalSdk=true (set in local.properties), the local SDK source is used
+// instead of the Maven Central artifact. This lets you test SDK changes locally.
+def localProps = new Properties()
+def localPropsFile = file("local.properties")
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.newInputStream())
+}
+if (localProps.getProperty("useLocalSdk", "false").toBoolean()) {
+    includeBuild("../gateway-sdk-android") {
+        dependencySubstitution {
+            substitute module("com.hubble.sdk:gateway-sdk") using project(":gateway-sdk")
+        }
+    }
+}
