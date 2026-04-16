@@ -14,7 +14,6 @@
     <string name="label_permissions">Permissions: %s</string>
     <string name="btn_start_active">Start Active</string>
     <string name="btn_stop_active">Stop Active</string>
-    <string name="btn_test_crash">Test Crash (Crashlytics)</string>
 
     <string name="label_scan_results">Nearby Hubble Devices (%d)</string>
     <string name="label_no_results">No Hubble devices found yet. Location collection starts automatically; BLE scanning begins once Bluetooth permissions are granted.</string>
