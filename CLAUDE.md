@@ -16,7 +16,8 @@
 
 ## CI
 - `.github/workflows/release.yml` — builds a signed release APK on `v*` tag push, creates a GitHub Release with APK and mapping file
-- Required GitHub secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, `HUBBLE_SDK_KEY`, `GOOGLE_SERVICES_JSON`
+- Required GitHub secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, `HUBBLE_SDK_KEY`, `GOOGLE_SERVICES_JSON`, `FIREBASE_APP_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`
+- On every `v*` tag push, signed APK is also uploaded to Firebase App Distribution and sent to the `internal-testers` group with auto-generated release notes from git log
 
 ## Project structure
 - Single-activity app demonstrating all Hubble Gateway SDK features
