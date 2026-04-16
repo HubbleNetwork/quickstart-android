@@ -199,6 +199,16 @@
 
         </LinearLayout>
 
+        <!-- Test Crash Button (for verifying Crashlytics setup) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_test_crash"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/btn_test_crash"
+            android:textColor="?attr/colorError" />
+
         <!-- Scan Results -->
         <TextView
             android:id="@+id/text_scan_results_label"

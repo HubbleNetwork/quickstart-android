@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
         // Active scan controls
         binding.btnStartActive.setOnClickListener(v -> onStartActiveClicked());
         binding.btnStopActive.setOnClickListener(v -> onStopActiveClicked());
+        binding.btnTestCrash.setOnClickListener(v -> HubbleGatewaySDK.testCrash());
 
         updateStatusDisplay();
         updateCapabilitiesDisplay();
