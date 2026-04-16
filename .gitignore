@@ -17,6 +17,9 @@ Thumbs.db
 *.keystore
 signing.properties
 
+# Firebase
+app/google-services.json
+
 /build
 /captures
 .externalNativeBuild

@@ -28,8 +28,9 @@ A minimal Android app showing how to embed the [Hubble Gateway SDK](https://gith
    ```properties
    hubbleSdkKey=your-sdk-key-here
    ```
-3. Open `quickstart-android` in Android Studio.
-4. Sync Gradle, then run the app on your device.
+3. Place your `google-services.json` in the `app/` directory. You can download this from your [Firebase Console](https://console.firebase.google.com/) project settings. This file is gitignored and required for crash reporting via Firebase Crashlytics.
+4. Open `quickstart-android` in Android Studio.
+5. Sync Gradle, then run the app on your device.
 
 ## Integrating the SDK into your own app
 

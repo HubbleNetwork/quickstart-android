@@ -3,8 +3,10 @@
 ## Build
 - Set `JAVA_HOME` to the Android Studio JBR path (see memory for local paths), then: `./gradlew assembleDebug`
 - Release build: `./gradlew assembleRelease` (requires signing config, see below)
+- Release builds enable R8 minification (`minifyEnabled = true`, `shrinkResources = true`)
 - Uses composite build with local SDK from `../gateway-sdk-android` when `useLocalSdk=true` in `local.properties`
 - SDK key is read from `hubbleSdkKey` in `local.properties` and injected via `BuildConfig.HUBBLE_SDK_KEY`
+- Requires `app/google-services.json` from Firebase Console (gitignored)
 
 ## Signing
 - Release signing reads from `local.properties` (local) or environment variables (CI)
@@ -14,7 +16,7 @@
 
 ## CI
 - `.github/workflows/release.yml` — builds a signed release APK on `v*` tag push, creates a GitHub Release with APK and mapping file
-- Required GitHub secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, `HUBBLE_SDK_KEY`
+- Required GitHub secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, `HUBBLE_SDK_KEY`, `GOOGLE_SERVICES_JSON`
 
 ## Project structure
 - Single-activity app demonstrating all Hubble Gateway SDK features
