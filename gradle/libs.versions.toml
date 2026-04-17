@@ -10,7 +10,7 @@ google-services = "4.4.4"
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
-hubble-gateway-sdk = { module = "com.hubble.sdk:gateway-sdk", version = "0.2.5" }
+hubble-gateway-sdk = { module = "com.hubble.sdk:gateway-sdk", version = "0.2.6" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "19.4.4" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics", version = "22.5.0" }
 

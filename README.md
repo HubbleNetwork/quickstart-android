@@ -39,7 +39,7 @@ A minimal Android app showing how to embed the [Hubble Gateway SDK](https://gith
 ```groovy
 // build.gradle
 dependencies {
-    implementation "com.hubble.sdk:gateway-sdk:0.2.5"
+    implementation "com.hubble.sdk:gateway-sdk:0.2.6"
 }
 ```
 
