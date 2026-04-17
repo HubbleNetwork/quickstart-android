@@ -1,18 +1,18 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.2"
 appcompat = "1.7.0"
 material = "1.12.0"
 constraintlayout = "2.2.0"
-firebase-crashlytics-plugin = "3.0.3"
-google-services = "4.4.2"
+firebase-crashlytics-plugin = "3.0.7"
+google-services = "4.4.4"
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 hubble-gateway-sdk = { module = "com.hubble.sdk:gateway-sdk", version = "0.2.5" }
-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "19.4.2" }
-firebase-analytics = { module = "com.google.firebase:firebase-analytics", version = "22.4.0" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "19.4.4" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics", version = "22.5.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
