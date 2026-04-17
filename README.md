@@ -300,3 +300,8 @@ boolean scanning = HubbleGatewaySDK.isScanning();
 - **Location services** must be enabled (the SDK uses the fused location provider via Google Play Services when available, and automatically falls back to the platform `LocationManager` on devices without Play Services).
 - **Bluetooth LE** is recommended for full functionality (BLE device scanning). Without BLE support or permissions, the SDK operates in location-only mode, collecting device locations without scanning for nearby Hubble devices.
 
+## License
+
+Copyright 2026 Hubble Network, Inc. This quickstart is licensed under the [Apache License, Version 2.0](LICENSE).
+
+> Note: The Hubble Gateway SDK itself is a commercial product distributed via Maven Central. This quickstart code is open source under Apache 2.0; the SDK is licensed separately under Hubble's commercial terms.
