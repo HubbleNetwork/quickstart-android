@@ -2,13 +2,10 @@ package com.hubble.quickstart.gateway;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.view.View;
 import android.view.WindowInsetsController;
 import android.widget.Toast;
@@ -261,34 +258,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if this group is ACCESS_BACKGROUND_LOCATION alone. The SDK's
         // getMissingPermissionGroups() guarantees it is in its own group (requiresSeparateRequest).
-        // On API 30+, the standard permission dialog doesn't work for background location —
-        // we must direct the user to the app's Settings page instead.
         boolean isBackgroundGroup = group.size() == 1
                 && "android.permission.ACCESS_BACKGROUND_LOCATION".equals(group.get(0));
-
-        if (isBackgroundGroup && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.permission_rationale_title)
-                    .setMessage(R.string.permission_rationale_background_location)
-                    .setPositiveButton(R.string.btn_open_settings, (dialog, which) -> {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.setData(Uri.fromParts("package", getPackageName(), null));
-                        // Reset so ensureScanning() re-evaluates when the user returns
-                        hasCompletedPermissionFlow = false;
-                        isRequestingPermissions = false;
-                        startActivity(intent);
-                    })
-                    .setNegativeButton(android.R.string.cancel, (dialog, which) ->
-                            requestNextPermissionGroup())
-                    .show();
-            return;
-        }
 
         int rationaleMessage = isBackgroundGroup
                 ? R.string.permission_rationale_background_location
                 : R.string.permission_rationale_message;
 
-        if (shouldShowRationale) {
+        // Always show rationale for background location (user needs context for the "Allow all the
+        // time" choice). For other groups, only show if the system asks us to. When the user
+        // confirms, calling permissionLauncher.launch() on API 30+ takes them directly to the
+        // location permission settings screen — not the generic app settings — so they can
+        // select "Allow all the time" with one tap.
+        if (shouldShowRationale || isBackgroundGroup) {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.permission_rationale_title)
                     .setMessage(rationaleMessage)

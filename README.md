@@ -138,7 +138,7 @@ the result of one group before requesting the next.
 | Group | Permissions | Notes |
 |---|---|---|
 | 1 (foreground) | `ACCESS_FINE_LOCATION`, `BLUETOOTH_SCAN` (optional), `POST_NOTIFICATIONS` | Requested together; SDK works in location-only mode without `BLUETOOTH_SCAN` |
-| 2 (background) | `ACCESS_BACKGROUND_LOCATION` | Must be requested **separately** from foreground location on API 30+. On API 30+, direct the user to Settings instead of using `requestPermissions()`. |
+| 2 (background) | `ACCESS_BACKGROUND_LOCATION` | Must be requested **separately** from foreground location on API 30+. On API 30+, `requestPermissions()` automatically opens the system location permission settings screen where the user can select "Allow all the time". |
 | 3 (optional) | `ACTIVITY_RECOGNITION` | Improves adaptive scan scheduling; SDK works without it |
 
 > Only permissions relevant to the current API level and not yet granted are returned. Empty groups are excluded.
@@ -184,30 +184,6 @@ private void requestNextPermissionGroup() {
     isRequestingPermissions = true;
     List<String> group = pendingPermissionGroups.remove(0);
 
-    // On API 30+, the standard permission dialog doesn't work for background location.
-    // Direct the user to the app's Settings page instead.
-    boolean isBackgroundGroup = group.size() == 1
-            && "android.permission.ACCESS_BACKGROUND_LOCATION".equals(group.get(0));
-
-    if (isBackgroundGroup && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        new AlertDialog.Builder(this)
-                .setTitle("Permissions Required")
-                .setMessage("Background location (\"Allow all the time\") is required "
-                        + "so this device can scan for Hubble devices when the app "
-                        + "is not open.")
-                .setPositiveButton("Open Settings", (dialog, which) -> {
-                    Intent intent = new Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                    intent.setData(Uri.fromParts("package", getPackageName(), null));
-                    startActivity(intent);
-                    // onResume will re-run ensureScanning() when the user returns
-                })
-                .setNegativeButton(android.R.string.cancel, (dialog, which) ->
-                        requestNextPermissionGroup())
-                .show();
-        return;
-    }
-
     boolean shouldShowRationale = false;
     for (String perm : group) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, perm)) {
@@ -216,11 +192,24 @@ private void requestNextPermissionGroup() {
         }
     }
 
-    if (shouldShowRationale) {
+    // ACCESS_BACKGROUND_LOCATION is always in its own group (requiresSeparateRequest).
+    boolean isBackgroundGroup = group.size() == 1
+            && "android.permission.ACCESS_BACKGROUND_LOCATION".equals(group.get(0));
+
+    // Always show a rationale for background location (user needs context for the "Allow all the
+    // time" choice). For other groups, only show if the system asks us to. Calling
+    // permissionLauncher.launch() for ACCESS_BACKGROUND_LOCATION on API 30+ takes the user
+    // directly to the system location permission settings screen — one tap to select "Allow all
+    // the time" — instead of the generic app settings page.
+    if (shouldShowRationale || isBackgroundGroup) {
+        String message = isBackgroundGroup
+                ? "Background location access (\"Allow all the time\") is required so this "
+                        + "device can scan for Hubble devices when the app is not open."
+                : "Location, Bluetooth, and notification permissions are needed so this "
+                        + "device can act as a Hubble gateway.";
         new AlertDialog.Builder(this)
                 .setTitle("Permissions Required")
-                .setMessage("Location, Bluetooth, and notification permissions are needed "
-                        + "so this device can act as a Hubble gateway.")
+                .setMessage(message)
                 .setPositiveButton(android.R.string.ok, (dialog, which) ->
                         permissionLauncher.launch(group.toArray(new String[0])))
                 .setNegativeButton(android.R.string.cancel, (dialog, which) ->
