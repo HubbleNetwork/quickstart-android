@@ -1,6 +1,6 @@
 # Hubble Gateway SDK — Android Quickstart
 
-A minimal Android app showing how to embed the [Hubble Gateway SDK](https://github.com/hubble-network/gateway-sdk-android) so any Android phone can act as a Hubble gateway — scanning for nearby Hubble Bluetooth devices and recording their location.
+A minimal Android app showing how to embed the [Hubble Gateway SDK](https://central.sonatype.com/artifact/com.hubble.sdk/gateway-sdk) so any Android phone can act as a Hubble gateway — scanning for nearby Hubble Bluetooth devices and recording their location.
 
 ## What the app demonstrates
 
