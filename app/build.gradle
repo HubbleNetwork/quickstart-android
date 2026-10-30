@@ -1,7 +1,25 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.firebase.crashlytics)
+    // Applied below, only when a google-services.json is present.
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
+}
+
+// Firebase is optional in this sample.
+//
+// google-services.json is gitignored, and the google-services plugin fails the build when it is
+// missing — so applying it unconditionally meant nobody could build this sample without first
+// creating a Firebase project, for a dependency the Hubble SDK does not need. Drop a
+// google-services.json into app/ to get Crashlytics and Analytics; leave it out and the app builds
+// and runs exactly the same, minus crash reporting.
+def firebaseConfig = file("google-services.json")
+def firebaseEnabled = firebaseConfig.exists()
+if (firebaseEnabled) {
+    apply plugin: libs.plugins.google.services.get().pluginId
+    apply plugin: libs.plugins.firebase.crashlytics.get().pluginId
+} else {
+    logger.lifecycle("[quickstart] No app/google-services.json — building without Firebase "
+            + "Crashlytics/Analytics. This is supported; see README.")
 }
 
 // Read local.properties once for SDK key, signing, etc.
@@ -25,6 +43,7 @@ android {
 
         buildConfigField "String", "HUBBLE_SDK_KEY",
                 "\"${localProps.getProperty("hubbleSdkKey", "")}\""
+        buildConfigField "boolean", "FIREBASE_ENABLED", "${firebaseEnabled}"
     }
 
     signingConfigs {
@@ -74,6 +93,8 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.analytics)
+    if (firebaseEnabled) {
+        implementation(libs.firebase.crashlytics)
+        implementation(libs.firebase.analytics)
+    }
 }
