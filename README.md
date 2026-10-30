@@ -11,6 +11,8 @@ A minimal Android app showing how to embed the [Hubble Gateway SDK](https://cent
 | Sequential runtime permission flow using `getMissingPermissionGroups` | [`MainActivity.java`](app/src/main/java/com/hubble/quickstart/gateway/MainActivity.java) |
 | Starting and stopping background BLE scanning | `MainActivity.java` — `startScanning()` / `stopScanning()` |
 | Active scanning (foreground service) | `MainActivity.java` — `startActiveScanning()` / `stopActiveScanning()` |
+| Continuous foreground scanning for a live screen | `MainActivity.java` — `startForegroundScanning()` / `stopForegroundScanning()` |
+| Deduping sightings correctly, and ageing them out | `MainActivity.java` — `payloadKey()`, `pruneStaleResults()` |
 | Listening for scan results with device location and service UUID | [`MainActivity.java`](app/src/main/java/com/hubble/quickstart/gateway/MainActivity.java) — `scanListener` |
 
 ## Getting Started
@@ -28,7 +30,7 @@ A minimal Android app showing how to embed the [Hubble Gateway SDK](https://cent
    ```properties
    hubbleSdkKey=your-sdk-key-here
    ```
-3. Place your `google-services.json` in the `app/` directory. You can download this from your [Firebase Console](https://console.firebase.google.com/) project settings. This file is gitignored and required for crash reporting via Firebase Crashlytics.
+3. **Optional.** Place a `google-services.json` in the `app/` directory to enable crash reporting via Firebase Crashlytics and Analytics; download it from your [Firebase Console](https://console.firebase.google.com/) project settings. The file is gitignored. Without it the app builds and runs exactly the same, minus crash reporting — the Hubble SDK does not need Firebase, and the build prints a line saying it was skipped.
 4. Open `quickstart-android` in Android Studio.
 5. Sync Gradle, then run the app on your device.
 
@@ -240,13 +242,85 @@ private final GatewayScanListener scanListener = result -> {
     byte[] serviceData   = result.getServiceData();      // Raw service data bytes
 
     GatewayLocation loc  = result.getLocation();
-    double lat           = loc.getLatitude();
-    double lng           = loc.getLongitude();
-    float accuracy       = loc.getHorizontalAccuracyMeters();
+    if (loc.isUnknown()) {
+        // The SDK had no fix. A sighting always carries a location, so this is a sentinel rather
+        // than null — and 0.0, 0.0 is a real point in the Gulf of Guinea. Check before plotting.
+    } else {
+        double lat       = loc.getLatitude();
+        double lng       = loc.getLongitude();
+        float accuracy   = loc.getHorizontalAccuracyMeters();
+    }
 };
 
 // Register in onResume
 HubbleGatewaySDK.addScanListener(scanListener);
+
+**Key your own list on the payload, not the device address.** Hubble beacons rotate their BLE
+address, so an address-keyed map shows one tag as an endless stream of new devices and grows
+without bound. This sample keys on the service UUID plus the service data (`payloadKey()`).
+
+**Age your entries out yourself.** The SDK reports that a device was seen, never that it stopped
+being seen, so nothing will remove an entry for you (`pruneStaleResults()`, 30 s here).
+
+**Do not redraw per sighting.** The listener fires once per advertisement. Under `startScanning()`
+that is a batched trickle, but a continuous foreground scan delivers at low latency, and rebuilding
+the list on each callback will peg the main thread. This sample coalesces redraws to 4 Hz and
+rebinds rows instead of re-inflating them. Note also that the listener is called on a binder
+thread, so anything it touches must be safe to use off the main thread.
+
+### 7. Seeing the SDK's logs
+
+The SDK's own logcat output is gated on how the **SDK** was built, so an app depending on the
+published artifact never sees it. Install a log sink instead — it works whatever the SDK was built
+as, and this sample installs one in `QuickstartApplication` before `start()`, so nothing from
+initialisation or the first upload cycle is missed:
+
+```java
+HubbleGatewaySDK.setLogSink(
+        entry -> Log.println(level(entry.getLevel()), "HubbleGatewaySDK",
+                "[" + entry.getCategory() + "] " + entry.getMessage()),
+        GatewayLogEntry.Level.DEBUG);
+```
+
+```bash
+adb logcat -s HubbleGatewaySDK
+```
+
+The sink forwards under the SDK's own documented tag, so the command above is the one from the SDK
+docs. If more than one Hubble app is installed on the device they share that tag — add
+`--pid=$(adb shell pidof com.hubble.quickstart.gateway)` to see only this one.
+
+### 8. Continuous foreground scanning
+
+`startScanning()` and `startActiveScanning()` both scan at `SCAN_MODE_LOW_POWER` and deliver in
+batches, which is right for coverage and useless for a screen whose RSSI has to move. For that,
+`startForegroundScanning()` runs a continuous low-latency scan with **no foreground service and no
+notification**, needing only `ACCESS_FINE_LOCATION` and `BLUETOOTH_SCAN`:
+
+```java
+// Called from a once-a-second tick while the screen is resumed, not once in onResume.
+private void ensureForegroundScanning() {
+    if (HubbleGatewaySDK.isForegroundScanning()) return;
+    if (!SdkCapabilities.isBluetoothEnabled(this)) return;
+    if (!SdkCapabilities.getMissingPermissions(this).isEmpty()) return;
+    HubbleGatewaySDK.startForegroundScanning();
+}
+```
+
+**Retry; do not assume the first start takes.** The SDK applies a short cool-down between scan
+starts, because the platform downgrades an app that starts scans too often. It also stops the scan
+by itself the moment your app is backgrounded. A screen rotation is therefore a stop and a start a
+second or two apart, and that start lands inside the cool-down and is refused — so a single
+`startForegroundScanning()` in `onResume` leaves the screen dead after every rotation, with nothing
+on screen to explain why. Retrying on a slow tick rides it out. Gate the attempt on the conditions
+you can see yourself, so a device with Bluetooth off does not ask once a second.
+
+By default sightings reach your listeners and nothing else — no database row, no upload — so
+opening the screen does not change what the device contributes. The SDK stops the scan by itself
+when your app leaves the foreground, and re-registers the scan client periodically so the stack
+keeps reporting; do not add a stop/start cycle of your own. Because it can stop without telling
+you, poll `isForegroundScanning()` rather than assuming it is still running — this sample does that
+once a second.
 
 // Unregister in onPause to avoid leaks
 HubbleGatewaySDK.removeScanListener(scanListener);
